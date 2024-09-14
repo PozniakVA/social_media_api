@@ -8,13 +8,17 @@ from django.utils.text import slugify
 from social_media_api import settings
 
 def image_path(instance: Any, filename: str) -> pathlib.Path:
-    filename = f"{slugify(instance.info)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
 
+    mark = "other"
     path_at_media = "upload/"
     if isinstance(instance, Post):
         path_at_media = "upload/post/"
+        mark = instance.name
     elif isinstance(instance, Profile):
         path_at_media = "upload/profile_image/"
+        mark = instance.nickname
+
+    filename = f"{slugify(mark)}-{uuid.uuid4()}" + pathlib.Path(filename).suffix
 
     return pathlib.Path(path_at_media) / pathlib.Path(filename)
 
