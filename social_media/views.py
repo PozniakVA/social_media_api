@@ -54,4 +54,4 @@ class LatestPostsView(generics.ListAPIView):
     serializer_class = PostDetailSerializer
 
     def get_queryset(self):
-        return Post.objects.all().order_by('-created_at')
+        return Post.objects.filter(profiles__follow__subscribed=True).order_by('-created_at')
