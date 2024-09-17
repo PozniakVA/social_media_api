@@ -31,7 +31,11 @@ class Profile(models.Model):
     )
     bio = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(blank=True, null=True, upload_to=image_path)
-    posts = models.ManyToManyField("Post", blank=True)
+    posts = models.ManyToManyField(
+        "Post",
+        related_name="profiles",
+        blank=True
+    )
 
     def __str__(self) -> str:
         return self.nickname

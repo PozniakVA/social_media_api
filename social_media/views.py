@@ -11,7 +11,8 @@ from social_media.serializer import (
     HashtagSerializer,
     PostSerializer,
     FollowSerializer,
-    MyProfileSerializer
+    MyProfileSerializer,
+    PostDetailSerializer
 )
 
 
@@ -40,3 +41,10 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return Profile.objects.get(user=self.request.user)
+
+
+class MyPostViewSet(viewsets.ModelViewSet):
+    serializer_class = PostDetailSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(profiles__user=self.request.user)

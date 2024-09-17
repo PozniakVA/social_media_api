@@ -6,7 +6,8 @@ from social_media.views import (
     FollowViewSet,
     PostViewSet,
     HashtagViewSet,
-    MyProfileView
+    MyProfileView,
+    MyPostViewSet
 )
 
 router = routers.DefaultRouter()
@@ -14,6 +15,7 @@ router.register("profile", ProfileViewSet)
 router.register("follow", FollowViewSet)
 router.register("posts", PostViewSet)
 router.register("hashtags", HashtagViewSet)
+router.register("my-posts", MyPostViewSet, basename="my-posts")
 
 
 urlpatterns = [
