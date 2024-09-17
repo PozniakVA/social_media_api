@@ -40,6 +40,7 @@ class PostSerializer(serializers.ModelSerializer):
             "name",
             "text",
             "image",
+            "created_at",
             "hashtag",
         ]
 
@@ -55,6 +56,21 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 class PostDetailSerializer(PostSerializer):
     hashtag = HashtagSerializer(many=True)
+
+    def create(self, validated_data):
+        hashtags_data = validated_data.pop("hashtag", None)
+        post = Post.objects.create(**validated_data)
+
+        if hashtags_data:
+            for hashtag_data in hashtags_data:
+                hashtag = Hashtag.objects.create(name=hashtag_data["name"])
+                post.hashtag.add(hashtag)
+
+        user = self.context["request"].user
+        profile = Profile.objects.get(user=user)
+        post.profiles.add(profile)
+        return post
+
 
 
 class MyProfileSerializer(ProfileSerializer):

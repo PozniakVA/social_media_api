@@ -47,4 +47,11 @@ class MyPostViewSet(viewsets.ModelViewSet):
     serializer_class = PostDetailSerializer
 
     def get_queryset(self):
-        return Post.objects.filter(profiles__user=self.request.user)
+        return Post.objects.filter(profiles__user=self.request.user).order_by('-created_at')
+
+
+class LatestPostsView(generics.ListAPIView):
+    serializer_class = PostDetailSerializer
+
+    def get_queryset(self):
+        return Post.objects.all().order_by('-created_at')
