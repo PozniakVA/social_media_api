@@ -1,7 +1,18 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, generics, request
 
-from social_media.models import Profile, Hashtag, Post, Follow
-from social_media.serializer import ProfileSerializer, HashtagSerializer, PostSerializer, FollowSerializer
+from social_media.models import (
+    Profile,
+    Hashtag,
+    Post,
+    Follow
+)
+from social_media.serializer import (
+    ProfileSerializer,
+    HashtagSerializer,
+    PostSerializer,
+    FollowSerializer,
+    MyProfileSerializer
+)
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
@@ -22,3 +33,10 @@ class PostViewSet(viewsets.ModelViewSet):
 class HashtagViewSet(viewsets.ModelViewSet):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
+
+
+class MyProfileView(generics.RetrieveUpdateAPIView):
+    serializer_class = MyProfileSerializer
+
+    def get_object(self):
+        return Profile.objects.get(user=self.request.user)

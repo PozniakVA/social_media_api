@@ -6,6 +6,7 @@ from social_media.models import (
     Post,
     Hashtag
 )
+from user.serializer import UserSerializer
 
 
 class ProfileSerializer(serializers.ModelSerializer):
@@ -50,3 +51,35 @@ class HashtagSerializer(serializers.ModelSerializer):
             "id",
             "name",
         ]
+
+
+class PostDetailSerializer(PostSerializer):
+    hashtag = HashtagSerializer(many=True)
+
+
+class MyProfileSerializer(ProfileSerializer):
+    user = UserSerializer()
+    posts = PostDetailSerializer(many=True)
+
+    def update(self, instance, validated_data):
+
+        user_data = validated_data.pop("user", None)
+        if user_data:
+            for attr, value in user_data.items():
+                setattr(instance.user, attr, value)
+            instance.user.save()
+
+        posts_data = validated_data.pop("posts", None)
+        if posts_data:
+            for post_data in posts_data:
+                hashtags_data = post_data.pop("hashtag", None)
+                post, created = Post.objects.get_or_create(**post_data)
+
+                if hashtags_data:
+                    for hashtag_data in hashtags_data:
+                        hashtag, created = Hashtag.objects.get_or_create(name=hashtag_data["name"])
+                        post.hashtag.add(hashtag)
+
+                instance.posts.add(post)
+
+        return instance

@@ -30,7 +30,7 @@ class Profile(models.Model):
         on_delete=models.CASCADE
     )
     bio = models.TextField(blank=True, null=True)
-    profile_image = models.ImageField(null=True, upload_to=image_path)
+    profile_image = models.ImageField(blank=True, null=True, upload_to=image_path)
     posts = models.ManyToManyField("Post", blank=True)
 
     def __str__(self) -> str:
