@@ -3,7 +3,6 @@ from django.contrib import admin
 from social_media.models import (
     Profile,
     Post,
-    Follow,
     Hashtag
 )
 
@@ -15,11 +14,6 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    pass
-
-
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
     pass
 
 

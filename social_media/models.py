@@ -36,18 +36,12 @@ class Profile(models.Model):
         related_name="profiles",
         blank=True
     )
+    following = models.ManyToManyField(
+        "self", related_name="followers", symmetrical=False, blank=True
+    )
 
     def __str__(self) -> str:
         return self.nickname
-
-
-class Follow(models.Model):
-    profile = models.ManyToManyField(
-        Profile,
-        related_name="follow",
-        blank=True,
-    )
-    subscribed = models.BooleanField(default=False)
 
 
 class Post(models.Model):

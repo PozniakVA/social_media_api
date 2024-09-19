@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from social_media.models import (
     Profile,
-    Follow,
     Post,
     Hashtag
 )
@@ -22,13 +21,17 @@ class ProfileSerializer(serializers.ModelSerializer):
         ]
 
 
-class FollowSerializer(serializers.ModelSerializer):
+class ProfileListSerializer(ProfileSerializer):
+    user = UserSerializer()
+
     class Meta:
-        model = Follow
+        model = Profile
         fields = [
             "id",
-            "profile",
-            "subscribed",
+            "nickname",
+            "user",
+            "bio",
+            "profile_image",
         ]
 
 
@@ -99,3 +102,7 @@ class MyProfileSerializer(ProfileSerializer):
                 instance.posts.add(post)
 
         return instance
+
+
+class FollowAndUnfollowSerializer(serializers.Serializer):
+    nickname = serializers.CharField(max_length=100)
