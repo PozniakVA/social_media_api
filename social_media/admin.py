@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth import get_user_model
 
 from social_media.models import (
     Profile,
@@ -6,10 +7,16 @@ from social_media.models import (
     Hashtag
 )
 
+User = get_user_model()
 
-@admin.register(Profile)
-class ProfileAdmin(admin.ModelAdmin):
-    pass
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+
+
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    inlines = (ProfileInline,)
 
 
 @admin.register(Post)
