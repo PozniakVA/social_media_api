@@ -1,3 +1,6 @@
+import profile
+
+from django.db.models import Count
 from rest_framework import viewsets, generics, status
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -15,7 +18,7 @@ from social_media.serializer import (
     MyProfileSerializer,
     PostDetailSerializer,
     ProfileListSerializer,
-    FollowAndUnfollowSerializer,
+    FollowAndUnfollowSerializer, LikeSerializer,
 )
 
 
@@ -25,7 +28,7 @@ class ProfileViewSet(viewsets.ModelViewSet):
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.all()
+    queryset = Post.objects.annotate(like_count=Count("like"))
     serializer_class = PostSerializer
 
 
@@ -110,3 +113,26 @@ class UnfollowView(APIView):
                 return Response({"detail": f"You have unfollowed {profile.nickname}."}, status=status.HTTP_201_CREATED)
 
             return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LikeView(APIView):
+    def post(self, request: Request) -> Response:
+
+        serializer = LikeSerializer(data=request.data)
+        if serializer.is_valid():
+
+            try:
+                post = Post.objects.get(pk=request.data["post_id"])
+            except Post.DoesNotExist:
+                return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+
+            user_profile = request.user.profile
+            if user_profile in post.like.all():
+                post.like.remove(user_profile)
+                message = "removed the like"
+            else:
+                post.like.add(user_profile)
+                message = "like"
+
+            return Response({"detail": f"You have {message} this post."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

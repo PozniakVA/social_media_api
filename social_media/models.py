@@ -49,6 +49,10 @@ class Post(models.Model):
     text = models.TextField(blank=True, null=True)
     image = models.ImageField(null=True, upload_to=image_path)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
+    like = models.ManyToManyField(
+        "Profile",
+        blank=True,
+    )
     hashtag = models.ManyToManyField(
         "Hashtag",
         related_name="posts",

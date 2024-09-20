@@ -44,6 +44,7 @@ class PostSerializer(serializers.ModelSerializer):
             "text",
             "image",
             "created_at",
+            "like",
             "hashtag",
         ]
 
@@ -73,7 +74,6 @@ class PostDetailSerializer(PostSerializer):
         profile = Profile.objects.get(user=user)
         post.profiles.add(profile)
         return post
-
 
 
 class MyProfileSerializer(ProfileSerializer):
@@ -106,3 +106,7 @@ class MyProfileSerializer(ProfileSerializer):
 
 class FollowAndUnfollowSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=100)
+
+
+class LikeSerializer(serializers.Serializer):
+    post_id = serializers.IntegerField()
