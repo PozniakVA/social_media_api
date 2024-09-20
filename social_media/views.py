@@ -18,17 +18,23 @@ from social_media.serializer import (
     MyProfileSerializer,
     PostDetailSerializer,
     ProfileListSerializer,
-    FollowAndUnfollowSerializer, LikeSerializer,
+    FollowAndUnfollowSerializer, LikeSerializer, ProfileDetailSerializer,
 )
 
 
 class ProfileViewSet(viewsets.ModelViewSet):
-    queryset = Profile.objects.all()
-    serializer_class = ProfileSerializer
+    queryset = Profile.objects.all().order_by("-user__date_joined")
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ProfileListSerializer
+        elif self.action == "retrieve":
+            return ProfileDetailSerializer
+        return ProfileSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
-    queryset = Post.objects.annotate(like_count=Count("like"))
+    queryset = Post.objects.annotate(like_count=Count("like")).order_by("-created_at")
     serializer_class = PostSerializer
 
 

@@ -76,6 +76,11 @@ class PostDetailSerializer(PostSerializer):
         return post
 
 
+class ProfileDetailSerializer(ProfileSerializer):
+    user = UserSerializer()
+    posts = PostDetailSerializer(many=True)
+
+
 class MyProfileSerializer(ProfileSerializer):
     user = UserSerializer()
     posts = PostDetailSerializer(many=True)
