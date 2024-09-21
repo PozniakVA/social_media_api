@@ -3,7 +3,7 @@ from rest_framework import serializers
 from social_media.models import (
     Profile,
     Post,
-    Hashtag
+    Hashtag, Comment
 )
 from user.serializer import UserSerializer
 
@@ -17,7 +17,6 @@ class ProfileSerializer(serializers.ModelSerializer):
             "user",
             "bio",
             "profile_image",
-            "posts",
         ]
 
 
@@ -45,8 +44,10 @@ class PostSerializer(serializers.ModelSerializer):
             "image",
             "created_at",
             "like",
+            "author",
             "hashtag",
         ]
+        read_only_fields = ["created_at", "like", "author", "id"]
 
 
 class HashtagSerializer(serializers.ModelSerializer):
@@ -58,8 +59,12 @@ class HashtagSerializer(serializers.ModelSerializer):
         ]
 
 
-class PostDetailSerializer(PostSerializer):
+class PostListSerializer(PostSerializer):
     hashtag = HashtagSerializer(many=True)
+    author = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="nickname",
+    )
 
     def create(self, validated_data):
         hashtags_data = validated_data.pop("hashtag", None)
@@ -76,6 +81,35 @@ class PostDetailSerializer(PostSerializer):
         return post
 
 
+class CommentSerializer(serializers.ModelSerializer):
+    profile = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field="nickname",
+    )
+    class Meta:
+        model = Comment
+        fields = [
+            "id",
+            "profile",
+            "post",
+            "text",
+            "created_at",
+        ]
+        read_only_fields = ["id", "created_at", "profile"]
+
+
+class CommentListSerializer(CommentSerializer):
+    class Meta(CommentSerializer.Meta):
+        fields = ["id", "profile", "text", "created_at"]
+
+
+
+class PostDetailSerializer(PostListSerializer):
+    comments = CommentListSerializer(many=True)
+    class Meta(PostListSerializer.Meta):
+        fields = PostListSerializer.Meta.fields + ["comments"]
+
+
 class ProfileDetailSerializer(ProfileSerializer):
     user = UserSerializer()
     posts = PostDetailSerializer(many=True)
@@ -83,7 +117,10 @@ class ProfileDetailSerializer(ProfileSerializer):
 
 class MyProfileSerializer(ProfileSerializer):
     user = UserSerializer()
-    posts = PostDetailSerializer(many=True)
+    posts = PostListSerializer(many=True)
+
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + ["posts"]
 
     def update(self, instance, validated_data):
 

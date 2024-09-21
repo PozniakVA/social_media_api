@@ -11,7 +11,9 @@ from social_media.views import (
     MyFollowingView,
     MyFollowersView,
     FollowView,
-    UnfollowView, LikeView
+    UnfollowView,
+    LikeView,
+    CommentViewSet
 )
 
 router = routers.DefaultRouter()
@@ -19,6 +21,7 @@ router.register("profiles", ProfileViewSet)
 router.register("posts", PostViewSet)
 router.register("hashtags", HashtagViewSet)
 router.register("my-posts", MyPostViewSet, basename="my-posts")
+router.register("comment", CommentViewSet)
 
 
 urlpatterns = [

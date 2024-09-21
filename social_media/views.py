@@ -1,15 +1,14 @@
-import profile
-
 from django.db.models import Count
-from rest_framework import viewsets, generics, status
+from rest_framework import viewsets, generics, status, mixins
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import GenericViewSet
 
 from social_media.models import (
     Profile,
     Hashtag,
-    Post,
+    Post, Comment,
 )
 from social_media.serializer import (
     ProfileSerializer,
@@ -18,11 +17,19 @@ from social_media.serializer import (
     MyProfileSerializer,
     PostDetailSerializer,
     ProfileListSerializer,
-    FollowAndUnfollowSerializer, LikeSerializer, ProfileDetailSerializer,
+    FollowAndUnfollowSerializer,
+    LikeSerializer,
+    ProfileDetailSerializer,
+    PostListSerializer,
+    CommentSerializer,
 )
 
 
-class ProfileViewSet(viewsets.ModelViewSet):
+class ProfileViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Profile.objects.all().order_by("-user__date_joined")
 
     def get_serializer_class(self):
@@ -33,9 +40,19 @@ class ProfileViewSet(viewsets.ModelViewSet):
         return ProfileSerializer
 
 
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
     queryset = Post.objects.annotate(like_count=Count("like")).order_by("-created_at")
-    serializer_class = PostSerializer
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PostListSerializer
+        elif self.action == "retrieve":
+            return PostDetailSerializer
+        return PostSerializer
 
 
 class HashtagViewSet(viewsets.ModelViewSet):
@@ -51,10 +68,20 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 
 
 class MyPostViewSet(viewsets.ModelViewSet):
-    serializer_class = PostDetailSerializer
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PostListSerializer
+        elif self.action == "retrieve":
+            return PostDetailSerializer
+        return PostSerializer
 
     def get_queryset(self):
-        return Post.objects.filter(profiles__user=self.request.user).order_by('-created_at')
+        author = self.request.user.profile
+        return Post.objects.filter(author=author).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        author = self.request.user.profile
+        serializer.save(author=author)
 
 
 class LatestPostsView(generics.ListAPIView):
@@ -62,7 +89,7 @@ class LatestPostsView(generics.ListAPIView):
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        return Post.objects.filter(profiles__in=user_profile.following.all()).order_by('-created_at')
+        return Post.objects.filter(author__in=user_profile.following.all()).order_by('-created_at')
 
 
 class MyFollowersView(generics.ListAPIView):
@@ -142,3 +169,18 @@ class LikeView(APIView):
 
             return Response({"detail": f"You have {message} this post."}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CommentViewSet(
+    mixins.CreateModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    GenericViewSet
+):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+
+    def perform_create(self, serializer):
+        profile = Profile.objects.get(user=self.request.user)
+        serializer.save(profile=profile)

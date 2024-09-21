@@ -31,11 +31,6 @@ class Profile(models.Model):
     )
     bio = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(blank=True, null=True, upload_to=image_path)
-    posts = models.ManyToManyField(
-        "Post",
-        related_name="profiles",
-        blank=True
-    )
     following = models.ManyToManyField(
         "self", related_name="followers", symmetrical=False, blank=True
     )
@@ -47,16 +42,23 @@ class Profile(models.Model):
 class Post(models.Model):
     name = models.CharField(max_length=100)
     text = models.TextField(blank=True, null=True)
-    image = models.ImageField(null=True, upload_to=image_path)
+    image = models.ImageField(blank=True, null=True, upload_to=image_path)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     like = models.ManyToManyField(
         "Profile",
+        related_name="likes",
         blank=True,
     )
     hashtag = models.ManyToManyField(
         "Hashtag",
         related_name="posts",
         blank=True,
+    )
+    author = models.ForeignKey(
+        "Profile",
+        related_name="posts",
+        on_delete=models.CASCADE,
+        null=True,
     )
 
     def __str__(self) -> str:
@@ -68,3 +70,13 @@ class Hashtag(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
+
+class Comment(models.Model):
+    post = models.ForeignKey(Post, related_name="comments", on_delete=models.CASCADE)
+    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True, editable=False)
+
+    def __str__(self) -> str:
+        return f"Comment by {self.profile} on {self.post}"
