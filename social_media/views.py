@@ -1,4 +1,6 @@
 from django.db.models import Count
+from drf_spectacular.types import OpenApiTypes
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from rest_framework import viewsets, generics, status, mixins
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -40,11 +42,26 @@ class ProfileViewSet(
         return ProfileSerializer
 
     def get_queryset(self):
+
         nickname = self.request.query_params.get("nickname")
         queryset = self.queryset
+
         if nickname:
             queryset = queryset.filter(nickname__icontains=nickname)
+
         return queryset.order_by("-user__date_joined")
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "nickname",
+                type=OpenApiTypes.STR,
+                description="Filter by nickname (ex. ?nickname=test1)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
 
 class PostViewSet(
@@ -62,6 +79,7 @@ class PostViewSet(
         return PostSerializer
 
     def get_queryset(self):
+
         name = self.request.query_params.get("name")
         author = self.request.query_params.get("author")
         hashtag = self.request.query_params.get("hashtag")
@@ -76,6 +94,28 @@ class PostViewSet(
 
         return queryset.order_by("-created_at")
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "hashtag",
+                type=OpenApiTypes.STR,
+                description="Filter by hashtag name (ex. ?hashtag=sport)",
+            ),
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                description="Filter by post name (ex. ?name=test)",
+            ),
+            OpenApiParameter(
+                "author",
+                type=OpenApiTypes.STR,
+                description="Filter by author nickname (ex. ?author=test)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
+
 
 class HashtagViewSet(viewsets.ModelViewSet):
     queryset = Hashtag.objects.all()
@@ -88,6 +128,18 @@ class HashtagViewSet(viewsets.ModelViewSet):
         if name:
             queryset = Hashtag.objects.filter(name__icontains=name)
         return queryset
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                description="Filter by hashtag name (ex. ?name=sport)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
 
 class MyProfileView(generics.RetrieveUpdateAPIView):
@@ -125,6 +177,24 @@ class MyPostViewSet(viewsets.ModelViewSet):
         serializer.save(author=author)
 
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                description="Filter by post name (ex. ?name=test)",
+            ),
+            OpenApiParameter(
+                "hashtag",
+                type=OpenApiTypes.STR,
+                description="Filter by hashtag name (ex. ?hashtag=sport)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
+
+
 class LatestPostsView(generics.ListAPIView):
     serializer_class = PostDetailSerializer
 
@@ -145,6 +215,28 @@ class LatestPostsView(generics.ListAPIView):
 
         return queryset.order_by("-created_at")
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "hashtag",
+                type=OpenApiTypes.STR,
+                description="Filter by hashtag name (ex. ?hashtag=sport)",
+            ),
+            OpenApiParameter(
+                "name",
+                type=OpenApiTypes.STR,
+                description="Filter by post name (ex. ?name=test)",
+            ),
+            OpenApiParameter(
+                "author",
+                type=OpenApiTypes.STR,
+                description="Filter by author nickname (ex. ?author=test1)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
+
 
 class MyFollowersView(generics.ListAPIView):
     serializer_class = ProfileListSerializer
@@ -158,6 +250,18 @@ class MyFollowersView(generics.ListAPIView):
             queryset = queryset.filter(nickname__icontains=nickname)
 
         return queryset.order_by("nickname")
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "nickname",
+                type=OpenApiTypes.STR,
+                description="Filter by nickname (ex. ?nickname=test1)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
 
 class MyFollowingView(generics.ListAPIView):
@@ -173,7 +277,23 @@ class MyFollowingView(generics.ListAPIView):
 
         return queryset.order_by("nickname")
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                "nickname",
+                type=OpenApiTypes.STR,
+                description="Filter by nickname (ex. ?nickname=test1)",
+            )
+        ]
+    )
+    def list(self, request):
+        return super().list(request)
 
+
+@extend_schema(
+    request=FollowAndUnfollowSerializer,
+    responses={200: OpenApiResponse(description="Successfully followed a user")}
+)
 class FollowView(APIView):
 
     def post(self, request: Request) -> Response:
@@ -189,12 +309,16 @@ class FollowView(APIView):
             user_profile = request.user.profile
             if user_profile != profile:
                 user_profile.following.add(profile)
-                return Response({"detail": f"You have followed {profile.nickname}."}, status=status.HTTP_201_CREATED)
+                return Response({"detail": f"You have followed {profile.nickname}."}, status=status.HTTP_200_OK)
 
             return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=FollowAndUnfollowSerializer,
+    responses={200: OpenApiResponse(description="Successfully unfollowed a user")}
+)
 class UnfollowView(APIView):
     def post(self, request: Request) -> Response:
         serializer = FollowAndUnfollowSerializer(data=request.data)
@@ -214,6 +338,10 @@ class UnfollowView(APIView):
             return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
 
 
+@extend_schema(
+    request=LikeSerializer,
+    responses={200: OpenApiResponse(description="Successfully like or un-like this post")}
+)
 class LikeView(APIView):
     def post(self, request: Request) -> Response:
 
