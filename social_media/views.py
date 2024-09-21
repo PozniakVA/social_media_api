@@ -30,7 +30,7 @@ class ProfileViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Profile.objects.all().order_by("-user__date_joined")
+    queryset = Profile.objects.all()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -39,13 +39,20 @@ class ProfileViewSet(
             return ProfileDetailSerializer
         return ProfileSerializer
 
+    def get_queryset(self):
+        nickname = self.request.query_params.get("nickname")
+        queryset = self.queryset
+        if nickname:
+            queryset = queryset.filter(nickname__icontains=nickname)
+        return queryset.order_by("-user__date_joined")
+
 
 class PostViewSet(
     mixins.RetrieveModelMixin,
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Post.objects.annotate(like_count=Count("like")).order_by("-created_at")
+    queryset = Post.objects.annotate(like_count=Count("like"))
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -54,10 +61,33 @@ class PostViewSet(
             return PostDetailSerializer
         return PostSerializer
 
+    def get_queryset(self):
+        name = self.request.query_params.get("name")
+        author = self.request.query_params.get("author")
+        hashtag = self.request.query_params.get("hashtag")
+        queryset = self.queryset
+
+        if hashtag:
+            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+        if name:
+            queryset = Post.objects.filter(name__icontains=name)
+        if author:
+            queryset = Post.objects.filter(author__nickname__icontains=author)
+
+        return queryset.order_by("-created_at")
+
 
 class HashtagViewSet(viewsets.ModelViewSet):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
+
+    def get_queryset(self):
+        name = self.request.query_params.get("name")
+        queryset = self.queryset
+
+        if name:
+            queryset = Hashtag.objects.filter(name__icontains=name)
+        return queryset
 
 
 class MyProfileView(generics.RetrieveUpdateAPIView):
@@ -77,7 +107,18 @@ class MyPostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         author = self.request.user.profile
-        return Post.objects.filter(author=author).order_by('-created_at')
+        queryset = Post.objects.filter(author=author)
+
+        name = self.request.query_params.get("name")
+        hashtag = self.request.query_params.get("hashtag")
+
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+
+        if hashtag:
+            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+
+        return queryset.order_by("-created_at")
 
     def perform_create(self, serializer):
         author = self.request.user.profile
@@ -89,7 +130,20 @@ class LatestPostsView(generics.ListAPIView):
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        return Post.objects.filter(author__in=user_profile.following.all()).order_by('-created_at')
+        queryset = Post.objects.filter(author__in=user_profile.following.all())
+
+        name = self.request.query_params.get("name")
+        author = self.request.query_params.get("author")
+        hashtag = self.request.query_params.get("hashtag")
+
+        if hashtag:
+            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+        if name:
+            queryset = Post.objects.filter(name__icontains=name)
+        if author:
+            queryset = Post.objects.filter(author__nickname__icontains=author)
+
+        return queryset.order_by("-created_at")
 
 
 class MyFollowersView(generics.ListAPIView):
@@ -97,7 +151,13 @@ class MyFollowersView(generics.ListAPIView):
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        return user_profile.followers.all().order_by("nickname")
+        queryset = user_profile.followers.all()
+
+        nickname = self.request.query_params.get("nickname")
+        if nickname:
+            queryset = queryset.filter(nickname__icontains=nickname)
+
+        return queryset.order_by("nickname")
 
 
 class MyFollowingView(generics.ListAPIView):
@@ -105,7 +165,13 @@ class MyFollowingView(generics.ListAPIView):
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        return user_profile.following.all().order_by("nickname")
+        queryset = user_profile.following.all().order_by("nickname")
+
+        nickname = self.request.query_params.get("nickname")
+        if nickname:
+            queryset = queryset.filter(nickname__icontains=nickname)
+
+        return queryset.order_by("nickname")
 
 
 class FollowView(APIView):
