@@ -114,6 +114,9 @@ class ProfileDetailSerializer(ProfileSerializer):
     user = UserSerializer()
     posts = PostDetailSerializer(many=True)
 
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + ["posts"]
+
 
 class MyProfileSerializer(ProfileSerializer):
     user = UserSerializer()
