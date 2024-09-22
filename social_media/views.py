@@ -12,6 +12,7 @@ from social_media.models import (
     Hashtag,
     Post, Comment,
 )
+from social_media.permissions import IsAdminOrAuthenticatedReadOnly
 from social_media.serializer import (
     ProfileSerializer,
     HashtagSerializer,
@@ -120,6 +121,7 @@ class PostViewSet(
 class HashtagViewSet(viewsets.ModelViewSet):
     queryset = Hashtag.objects.all()
     serializer_class = HashtagSerializer
+    permission_classes = [IsAdminOrAuthenticatedReadOnly]
 
     def get_queryset(self):
         name = self.request.query_params.get("name")
@@ -150,6 +152,7 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
 
 
 class MyPostViewSet(viewsets.ModelViewSet):
+
     def get_serializer_class(self):
         if self.action == "list":
             return PostListSerializer
@@ -267,6 +270,7 @@ class MyFollowersView(generics.ListAPIView):
 class MyFollowingView(generics.ListAPIView):
     serializer_class = ProfileListSerializer
 
+
     def get_queryset(self):
         user_profile = self.request.user.profile
         queryset = user_profile.following.all().order_by("nickname")
@@ -320,6 +324,7 @@ class FollowView(APIView):
     responses={200: OpenApiResponse(description="Successfully unfollowed a user")}
 )
 class UnfollowView(APIView):
+
     def post(self, request: Request) -> Response:
         serializer = FollowAndUnfollowSerializer(data=request.data)
         if serializer.is_valid():
@@ -343,6 +348,7 @@ class UnfollowView(APIView):
     responses={200: OpenApiResponse(description="Successfully like or un-like this post")}
 )
 class LikeView(APIView):
+
     def post(self, request: Request) -> Response:
 
         serializer = LikeSerializer(data=request.data)
