@@ -27,7 +27,7 @@ class Profile(models.Model):
     nickname = models.CharField(max_length=120, unique=True)
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
     bio = models.TextField(blank=True, null=True)
     profile_image = models.ImageField(blank=True, null=True, upload_to=image_path)
