@@ -2,12 +2,18 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from django.utils.translation import gettext as _
 
+from social_media.models import Profile
 from .models import User
 
+
+class ProfileInline(admin.TabularInline):
+    model = Profile
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     """Define admin model for custom User model with no email field."""
+
+    inlines = [ProfileInline,]
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
