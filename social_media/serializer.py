@@ -35,6 +35,7 @@ class ProfileListSerializer(ProfileSerializer):
 
 
 class PostSerializer(serializers.ModelSerializer):
+    like_count = serializers.IntegerField(read_only=True)
     class Meta:
         model = Post
         fields = [
@@ -43,11 +44,11 @@ class PostSerializer(serializers.ModelSerializer):
             "text",
             "image",
             "created_at",
-            "like",
+            "like_count",
             "author",
             "hashtag",
         ]
-        read_only_fields = ["created_at", "like", "author", "id"]
+        read_only_fields = ["created_at", "like", "like_count", "author", "id"]
 
 
 class HashtagSerializer(serializers.ModelSerializer):

@@ -33,7 +33,7 @@ class ProfileViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Profile.objects.all()
+    queryset = Profile.objects.select_related().prefetch_related()
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -70,7 +70,7 @@ class PostViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Post.objects.annotate(like_count=Count("like"))
+    queryset = Post.objects.annotate(like_count=Count("like")).select_related("author").prefetch_related("hashtag", "like")
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -148,7 +148,7 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = MyProfileSerializer
 
     def get_object(self):
-        return Profile.objects.get(user=self.request.user)
+        return Profile.objects.select_related("user").prefetch_related("posts__like", "posts__hashtag").get(user=self.request.user)
 
 
 class MyPostViewSet(viewsets.ModelViewSet):
@@ -162,7 +162,7 @@ class MyPostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         author = self.request.user.profile
-        queryset = Post.objects.filter(author=author)
+        queryset = Post.objects.annotate(like_count=Count("like")).filter(author=author).select_related("author").prefetch_related("hashtag", "like")
 
         name = self.request.query_params.get("name")
         hashtag = self.request.query_params.get("hashtag")
@@ -198,12 +198,21 @@ class MyPostViewSet(viewsets.ModelViewSet):
         return super().list(request)
 
 
-class LatestPostsView(generics.ListAPIView):
-    serializer_class = PostDetailSerializer
+class LatestPostsViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
+):
+    def get_serializer_class(self):
+        if self.action == "list":
+            return PostListSerializer
+        elif self.action == "retrieve":
+            return PostDetailSerializer
+        return PostSerializer
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = Post.objects.filter(author__in=user_profile.following.all())
+        queryset = Post.objects.annotate(like_count=Count("like")).filter(author__in=user_profile.following.all())
 
         name = self.request.query_params.get("name")
         author = self.request.query_params.get("author")
@@ -241,12 +250,22 @@ class LatestPostsView(generics.ListAPIView):
         return super().list(request)
 
 
-class MyFollowersView(generics.ListAPIView):
-    serializer_class = ProfileListSerializer
+class MyFollowersViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ProfileListSerializer
+        elif self.action == "retrieve":
+            return ProfileDetailSerializer
+        return ProfileSerializer
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = user_profile.followers.all()
+        queryset = user_profile.followers.select_related("user").order_by("nickname")
 
         nickname = self.request.query_params.get("nickname")
         if nickname:
@@ -267,13 +286,22 @@ class MyFollowersView(generics.ListAPIView):
         return super().list(request)
 
 
-class MyFollowingView(generics.ListAPIView):
-    serializer_class = ProfileListSerializer
+class MyFollowingViewSet(
+    mixins.RetrieveModelMixin,
+    mixins.ListModelMixin,
+    GenericViewSet
+):
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ProfileListSerializer
+        elif self.action == "retrieve":
+            return ProfileDetailSerializer
+        return ProfileSerializer
 
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = user_profile.following.all().order_by("nickname")
+        queryset = user_profile.following.select_related("user").order_by("nickname")
 
         nickname = self.request.query_params.get("nickname")
         if nickname:

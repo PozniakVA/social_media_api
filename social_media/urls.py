@@ -7,13 +7,13 @@ from social_media.views import (
     HashtagViewSet,
     MyProfileView,
     MyPostViewSet,
-    LatestPostsView,
-    MyFollowingView,
-    MyFollowersView,
     FollowView,
     UnfollowView,
     LikeView,
-    CommentViewSet
+    CommentViewSet,
+    LatestPostsViewSet,
+    MyFollowingViewSet,
+    MyFollowersViewSet
 )
 
 router = routers.DefaultRouter()
@@ -22,14 +22,13 @@ router.register("posts", PostViewSet)
 router.register("hashtags", HashtagViewSet)
 router.register("my-posts", MyPostViewSet, basename="my-posts")
 router.register("comment", CommentViewSet)
-
+router.register("latest-posts", LatestPostsViewSet, basename="latest-posts")
+router.register("my-following", MyFollowingViewSet, basename="my-following")
+router.register("my-followers", MyFollowersViewSet, basename="my-followers")
 
 urlpatterns = [
     path('', include(router.urls)),
     path("my-profile/", MyProfileView.as_view(), name="my-profile"),
-    path("latest-posts/", LatestPostsView.as_view(), name="latest-posts"),
-    path("my-following/", MyFollowingView.as_view(), name="my-following"),
-    path("my-followers/", MyFollowersView.as_view(), name="my-followers"),
     path("follow/", FollowView.as_view(), name="follow"),
     path("unfollow/", UnfollowView.as_view(), name="unfollow"),
     path("like/", LikeView.as_view(), name="like"),

@@ -29,6 +29,8 @@ ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = "user.User"
 
+INTERNAL_IPS = ('127.0.0.1', '0.0.0.0', 'localhost',)
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,10 +45,12 @@ INSTALLED_APPS = [
     "user",
     "social_media",
     "rest_framework_simplejwt",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
