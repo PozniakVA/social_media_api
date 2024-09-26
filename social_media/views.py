@@ -89,9 +89,9 @@ class PostViewSet(
         if hashtag:
             queryset = queryset.filter(hashtag__name__icontains=hashtag)
         if name:
-            queryset = Post.objects.filter(name__icontains=name)
+            queryset = queryset.filter(name__icontains=name)
         if author:
-            queryset = Post.objects.filter(author__nickname__icontains=author)
+            queryset = queryset.filter(author__nickname__icontains=author)
 
         return queryset.order_by("-created_at")
 
@@ -158,6 +158,8 @@ class MyPostViewSet(viewsets.ModelViewSet):
             return PostListSerializer
         elif self.action == "retrieve":
             return PostDetailSerializer
+        elif self.action == "create":
+            return PostListSerializer
         return PostSerializer
 
     def get_queryset(self):
