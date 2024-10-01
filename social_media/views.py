@@ -25,6 +25,7 @@ from social_media.serializer import (
     ProfileDetailSerializer,
     PostListSerializer,
     CommentSerializer,
+    MyProfileListSerializer
 )
 
 
@@ -81,15 +82,15 @@ class PostViewSet(
 
     def get_queryset(self):
 
-        name = self.request.query_params.get("name")
+        title = self.request.query_params.get("title")
         author = self.request.query_params.get("author")
         hashtag = self.request.query_params.get("hashtag")
         queryset = self.queryset
 
         if hashtag:
             queryset = queryset.filter(hashtag__name__icontains=hashtag)
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
         if author:
             queryset = queryset.filter(author__nickname__icontains=author)
 
@@ -103,9 +104,9 @@ class PostViewSet(
                 description="Filter by hashtag name (ex. ?hashtag=sport)",
             ),
             OpenApiParameter(
-                "name",
+                "title",
                 type=OpenApiTypes.STR,
-                description="Filter by post name (ex. ?name=test)",
+                description="Filter by post title (ex. ?title=test)",
             ),
             OpenApiParameter(
                 "author",
@@ -145,7 +146,11 @@ class HashtagViewSet(viewsets.ModelViewSet):
 
 
 class MyProfileView(generics.RetrieveUpdateAPIView):
-    serializer_class = MyProfileSerializer
+
+    def get_serializer_class(self):
+        if self.request.method in ["PATCH", "PUT"]:
+            return MyProfileSerializer
+        return MyProfileListSerializer
 
     def get_object(self):
         return Profile.objects.select_related("user").prefetch_related("posts__like", "posts__hashtag").get(user=self.request.user)
@@ -166,11 +171,11 @@ class MyPostViewSet(viewsets.ModelViewSet):
         author = self.request.user.profile
         queryset = Post.objects.annotate(like_count=Count("like")).filter(author=author).select_related("author").prefetch_related("hashtag", "like")
 
-        name = self.request.query_params.get("name")
+        title = self.request.query_params.get("title")
         hashtag = self.request.query_params.get("hashtag")
 
-        if name:
-            queryset = queryset.filter(name__icontains=name)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
 
         if hashtag:
             queryset = queryset.filter(hashtag__name__icontains=hashtag)
@@ -216,16 +221,16 @@ class LatestPostsViewSet(
         user_profile = self.request.user.profile
         queryset = Post.objects.annotate(like_count=Count("like")).filter(author__in=user_profile.following.all())
 
-        name = self.request.query_params.get("name")
+        title = self.request.query_params.get("title")
         author = self.request.query_params.get("author")
         hashtag = self.request.query_params.get("hashtag")
 
         if hashtag:
             queryset = queryset.filter(hashtag__name__icontains=hashtag)
-        if name:
-            queryset = Post.objects.filter(name__icontains=name)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
         if author:
-            queryset = Post.objects.filter(author__nickname__icontains=author)
+            queryset = queryset.filter(author__nickname__icontains=author)
 
         return queryset.order_by("-created_at")
 
@@ -368,7 +373,7 @@ class UnfollowView(APIView):
             user_profile = request.user.profile
             if user_profile != profile:
                 user_profile.following.remove(profile)
-                return Response({"detail": f"You have unfollowed {profile.nickname}."}, status=status.HTTP_201_CREATED)
+                return Response({"detail": f"You have unfollowed {profile.nickname}."}, status=status.HTTP_200_OK)
 
             return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
 

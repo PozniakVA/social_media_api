@@ -13,7 +13,7 @@ def image_path(instance: Any, filename: str) -> pathlib.Path:
     path_at_media = "upload/"
     if isinstance(instance, Post):
         path_at_media = "upload/post/"
-        mark = instance.name
+        mark = instance.title
     elif isinstance(instance, Profile):
         path_at_media = "upload/profile_image/"
         mark = instance.nickname
@@ -40,7 +40,7 @@ class Profile(models.Model):
 
 
 class Post(models.Model):
-    name = models.CharField(max_length=100)
+    title = models.CharField(max_length=100)
     text = models.TextField(blank=True, null=True)
     image = models.ImageField(blank=True, null=True, upload_to=image_path)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
@@ -62,8 +62,7 @@ class Post(models.Model):
     )
 
     def __str__(self) -> str:
-        return self.name
-
+        return self.title
 
 class Hashtag(models.Model):
     name = models.CharField(max_length=100)

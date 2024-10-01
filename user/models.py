@@ -21,7 +21,7 @@ class UserManager(BaseUserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
-        Profile.objects.create(user=user)
+        Profile.objects.create(user=user, nickname=f"user_{user.id}")
         return user
 
     def create_user(self, email, password=None, **extra_fields):

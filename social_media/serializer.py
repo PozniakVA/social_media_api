@@ -40,7 +40,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = Post
         fields = [
             "id",
-            "name",
+            "title",
             "text",
             "image",
             "created_at",
@@ -61,7 +61,7 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 
 class PostListSerializer(PostSerializer):
-    hashtag = HashtagSerializer(many=True)
+    hashtag = HashtagSerializer(many=True, required=False)
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field="nickname",
@@ -75,10 +75,6 @@ class PostListSerializer(PostSerializer):
             for hashtag_data in hashtags_data:
                 hashtag = Hashtag.objects.create(name=hashtag_data["name"])
                 post.hashtag.add(hashtag)
-
-        user = self.context["request"].user
-        profile = Profile.objects.get(user=user)
-        post.profiles.add(profile)
         return post
 
 
@@ -121,10 +117,6 @@ class ProfileDetailSerializer(ProfileSerializer):
 
 class MyProfileSerializer(ProfileSerializer):
     user = UserSerializer()
-    posts = PostListSerializer(many=True)
-
-    class Meta(ProfileSerializer.Meta):
-        fields = ProfileSerializer.Meta.fields + ["posts"]
 
     def update(self, instance, validated_data):
 
@@ -134,21 +126,18 @@ class MyProfileSerializer(ProfileSerializer):
                 setattr(instance.user, attr, value)
             instance.user.save()
 
-        posts_data = validated_data.pop("posts", None)
-        if posts_data:
-            for post_data in posts_data:
-                hashtags_data = post_data.pop("hashtag", None)
-                post, created = Post.objects.get_or_create(**post_data)
-
-                if hashtags_data:
-                    for hashtag_data in hashtags_data:
-                        hashtag, created = Hashtag.objects.get_or_create(name=hashtag_data["name"])
-                        post.hashtag.add(hashtag)
-
-                instance.posts.add(post)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+            instance.save()
 
         return instance
 
+
+class MyProfileListSerializer(MyProfileSerializer):
+    posts = PostListSerializer(many=True)
+
+    class Meta(ProfileSerializer.Meta):
+        fields = ProfileSerializer.Meta.fields + ["posts"]
 
 class FollowAndUnfollowSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=100)
