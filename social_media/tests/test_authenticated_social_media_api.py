@@ -11,10 +11,7 @@ from social_media.serializer import (
     PostListSerializer,
     PostDetailSerializer,
     HashtagSerializer,
-    MyProfileSerializer,
     CommentSerializer,
-    LikeSerializer,
-    PostSerializer,
     MyProfileListSerializer
 )
 from social_media.tests.function_for_creating_objects_and_urls import (
