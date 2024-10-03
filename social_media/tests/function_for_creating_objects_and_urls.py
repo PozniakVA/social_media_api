@@ -7,26 +7,26 @@ from social_media.models import Profile, Post, Hashtag, Comment
 def list_url(endpoint):
     return reverse(f"social_media:{endpoint}")
 
+
 def detail_url(endpoint, object_id):
     return reverse(f"social_media:{endpoint}", args=[object_id])
 
+
 def sample_user(**params):
-    defaults = {
-        "email": "test_user@gmail.com",
-        "password": "test12345"
-    }
+    defaults = {"email": "test_user@gmail.com", "password": "test12345"}
     defaults.update(params)
     return get_user_model().objects.create_user(**defaults)
+
 
 def get_simple_profile(user):
     return Profile.objects.get(user=user)
 
+
 def sample_hashtag(**params):
-    defaults = {
-        "name": "test"
-    }
+    defaults = {"name": "test"}
     defaults.update(params)
     return Hashtag.objects.create(**defaults)
+
 
 def sample_post(**params):
     hashtags = params.pop("hashtags", None)
@@ -45,13 +45,15 @@ def sample_post(**params):
 
     return post
 
+
 def add_like_count_field(serializer_data):
     if isinstance(serializer_data, list):
         for item in serializer_data:
             item["like_count"] = 0
     else:
-        serializer_data["like_count"]= 0
+        serializer_data["like_count"] = 0
     return serializer_data
+
 
 def create_two_posts_and_profiles():
     user_1 = sample_user(email="test_11gmail.com")
@@ -70,8 +72,9 @@ def create_two_posts_and_profiles():
         "hashtag_1": hashtag_1,
         "hashtag_2": hashtag_2,
         "profile_1": profile_1,
-        "profile_2": profile_2
+        "profile_2": profile_2,
     }
+
 
 def sample_comment(**params):
     profile = get_simple_profile(user=sample_user())

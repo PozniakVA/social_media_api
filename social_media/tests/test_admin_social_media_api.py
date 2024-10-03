@@ -7,7 +7,7 @@ from social_media.models import Hashtag
 from social_media.tests.function_for_creating_objects_and_urls import (
     list_url,
     sample_hashtag,
-    detail_url
+    detail_url,
 )
 
 
@@ -23,9 +23,7 @@ class AdminHashtagAPITest(TestCase):
         self.client.force_authenticate(user=self.user)
 
     def test_create_hashtag(self) -> None:
-        data = {
-            "name": "Box"
-        }
+        data = {"name": "Box"}
         response = self.client.post(list_url("hashtag-list"), data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -36,7 +34,9 @@ class AdminHashtagAPITest(TestCase):
 
         update_hashtag = {"name": "Football"}
 
-        response = self.client.patch(detail_url("hashtag-detail", hashtag.id), update_hashtag)
+        response = self.client.patch(
+            detail_url("hashtag-detail", hashtag.id), update_hashtag
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], update_hashtag["name"])

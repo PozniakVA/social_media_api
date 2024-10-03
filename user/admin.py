@@ -9,11 +9,14 @@ from .models import User
 class ProfileInline(admin.TabularInline):
     model = Profile
 
+
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
     """Define admin model for custom User model with no email field."""
 
-    inlines = [ProfileInline,]
+    inlines = [
+        ProfileInline,
+    ]
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),

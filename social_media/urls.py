@@ -13,7 +13,7 @@ from social_media.views import (
     CommentViewSet,
     LatestPostsViewSet,
     MyFollowingViewSet,
-    MyFollowersViewSet
+    MyFollowersViewSet,
 )
 
 router = routers.DefaultRouter()
@@ -27,7 +27,7 @@ router.register("my-following", MyFollowingViewSet, basename="my-following")
 router.register("my-followers", MyFollowersViewSet, basename="my-followers")
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("", include(router.urls)),
     path("my-profile/", MyProfileView.as_view(), name="my-profile"),
     path("follow/", FollowView.as_view(), name="follow"),
     path("unfollow/", UnfollowView.as_view(), name="unfollow"),

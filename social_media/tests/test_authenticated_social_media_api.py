@@ -11,7 +11,7 @@ from social_media.serializer import (
     PostDetailSerializer,
     HashtagSerializer,
     CommentSerializer,
-    MyProfileListSerializer
+    MyProfileListSerializer,
 )
 from social_media.tests.function_for_creating_objects_and_urls import (
     list_url,
@@ -22,7 +22,7 @@ from social_media.tests.function_for_creating_objects_and_urls import (
     add_like_count_field,
     sample_hashtag,
     create_two_posts_and_profiles,
-    sample_comment
+    sample_comment,
 )
 
 
@@ -31,8 +31,7 @@ class AuthenticatedProfileAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password = "test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -49,7 +48,7 @@ class AuthenticatedProfileAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         serializer = ProfileDetailSerializer(profile)
 
-        response = self.client.get(detail_url("profile-detail",profile.id))
+        response = self.client.get(detail_url("profile-detail", profile.id))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
@@ -63,7 +62,9 @@ class AuthenticatedProfileAPITest(TestCase):
         serializer_1 = ProfileListSerializer(profile_1)
         serializer_2 = ProfileListSerializer(profile_2)
 
-        response = self.client.get(list_url("profile-list"), {"nickname": profile_2.nickname})
+        response = self.client.get(
+            list_url("profile-list"), {"nickname": profile_2.nickname}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_2.data, response.data)
@@ -75,8 +76,7 @@ class AuthenticatedPostAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password = "test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -110,7 +110,9 @@ class AuthenticatedPostAPITest(TestCase):
         serializer_2 = PostListSerializer(data["post_2"])
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
-        response = self.client.get(list_url("post-list"), {"hashtag": data["hashtag_2"]})
+        response = self.client.get(
+            list_url("post-list"), {"hashtag": data["hashtag_2"]}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -125,7 +127,10 @@ class AuthenticatedPostAPITest(TestCase):
         serializer_2 = PostListSerializer(data["post_2"])
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
-        response = self.client.get(list_url("post-list"), {"title": data["post_2"]})
+        response = self.client.get(
+            list_url("post-list"),
+            {"title": data["post_2"]}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -140,7 +145,10 @@ class AuthenticatedPostAPITest(TestCase):
         serializer_2 = PostListSerializer(data["post_2"])
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
-        response = self.client.get(list_url("post-list"), {"author": data["profile_2"]})
+        response = self.client.get(
+            list_url("post-list"),
+            {"author": data["profile_2"]}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -152,8 +160,7 @@ class AuthenticatedHashtagAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -184,7 +191,10 @@ class AuthenticatedHashtagAPITest(TestCase):
         serializer_1 = HashtagSerializer(hashtag_1)
         serializer_2 = HashtagSerializer(hashtag_2)
 
-        response = self.client.get(list_url("hashtag-list"), {"name": hashtag_2.name})
+        response = self.client.get(
+            list_url("hashtag-list"),
+            {"name": hashtag_2.name}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_2.data, response.data)
@@ -201,7 +211,10 @@ class AuthenticatedHashtagAPITest(TestCase):
         hashtag = sample_hashtag()
         data = {"name": "sport"}
 
-        response = self.client.put(detail_url("hashtag-detail", hashtag.id), data)
+        response = self.client.put(
+            detail_url("hashtag-detail", hashtag.id),
+            data
+        )
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -218,8 +231,7 @@ class AuthenticatedMyProfileAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -234,10 +246,7 @@ class AuthenticatedMyProfileAPITest(TestCase):
 
     def test_update_my_profile(self) -> None:
         profile = get_simple_profile(self.user)
-        data = {
-            "nickname": "top_user",
-            "bio": "top_user"
-        }
+        data = {"nickname": "top_user", "bio": "top_user"}
 
         response = self.client.patch(list_url("my-profile"), data)
 
@@ -255,7 +264,10 @@ class AuthenticatedMyProfileAPITest(TestCase):
             }
         }
 
-        response = self.client.patch(list_url("my-profile"), data, format="json")
+        response = self.client.patch(
+            list_url("my-profile"),
+            data, format="json"
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -269,8 +281,7 @@ class AuthenticatedMyPostAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -320,7 +331,10 @@ class AuthenticatedMyPostAPITest(TestCase):
         serializer_2 = PostListSerializer(post_2)
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
-        response = self.client.get(list_url("my-posts-list"), {"title": post_2.title})
+        response = self.client.get(
+            list_url("my-posts-list"),
+            {"title": post_2.title}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -334,7 +348,11 @@ class AuthenticatedMyPostAPITest(TestCase):
 
         profile_2 = get_simple_profile(user=self.user)
         hashtag_2 = sample_hashtag(name="sport")
-        post_2 = sample_post(title="sport", author=profile_2, hashtags=[hashtag_2])
+        post_2 = sample_post(
+            title="sport",
+            author=profile_2,
+            hashtags=[hashtag_2]
+        )
 
         serializer_1 = PostListSerializer(post_1)
         serializer_data_1 = add_like_count_field(serializer_1.data)
@@ -342,7 +360,10 @@ class AuthenticatedMyPostAPITest(TestCase):
         serializer_2 = PostListSerializer(post_2)
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
-        response = self.client.get(list_url("my-posts-list"), {"hashtag": hashtag_2})
+        response = self.client.get(
+            list_url("my-posts-list"),
+            {"hashtag": hashtag_2}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -350,10 +371,7 @@ class AuthenticatedMyPostAPITest(TestCase):
 
     def test_create_my_post(self) -> None:
         profile = get_simple_profile(user=self.user)
-        data = {
-            "title": "sport",
-            "author": profile
-        }
+        data = {"title": "sport", "author": profile}
         response = self.client.post(list_url("my-posts-list"), data)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -366,7 +384,9 @@ class AuthenticatedMyPostAPITest(TestCase):
 
         update_post = {"title": "test hello"}
 
-        response = self.client.patch(detail_url("my-posts-detail", post.id), update_post)
+        response = self.client.patch(
+            detail_url("my-posts-detail", post.id), update_post
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -388,8 +408,7 @@ class AuthenticatedLatestPostsAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -421,7 +440,9 @@ class AuthenticatedLatestPostsAPITest(TestCase):
         profile_2 = get_simple_profile(user=self.user)
         profile_2.following.add(profile_1)
 
-        response = self.client.get(detail_url("latest-posts-detail", post_1.id))
+        response = self.client.get(
+            detail_url("latest-posts-detail", post_1.id)
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer_data_1, response.data)
@@ -443,7 +464,9 @@ class AuthenticatedLatestPostsAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.following.add(data["profile_2"])
 
-        response = self.client.get(list_url("latest-posts-list"), {"hashtag": data["hashtag_2"]})
+        response = self.client.get(
+            list_url("latest-posts-list"), {"hashtag": data["hashtag_2"]}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_2, response.data)
@@ -466,7 +489,9 @@ class AuthenticatedLatestPostsAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.following.add(data["profile_2"])
 
-        response = self.client.get(list_url("latest-posts-list"), {"title": post_3.title})
+        response = self.client.get(
+            list_url("latest-posts-list"), {"title": post_3.title}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_3, response.data)
@@ -491,7 +516,9 @@ class AuthenticatedLatestPostsAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.following.add(data["profile_2"], profile_3)
 
-        response = self.client.get(list_url("latest-posts-list"), {"author": post_3.author })
+        response = self.client.get(
+            list_url("latest-posts-list"), {"author": post_3.author}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_data_3, response.data)
@@ -504,8 +531,7 @@ class AuthenticatedMyFollowersAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -532,7 +558,9 @@ class AuthenticatedMyFollowersAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.followers.add(data["profile_1"])
 
-        response = self.client.get(detail_url("my-followers-detail", data["profile_1"].id))
+        response = self.client.get(
+            detail_url("my-followers-detail", data["profile_1"].id)
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer_1.data, response.data)
@@ -550,7 +578,9 @@ class AuthenticatedMyFollowersAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.followers.add(profile_3)
 
-        response = self.client.get(list_url("my-followers-list"), {"nickname": profile_3.nickname})
+        response = self.client.get(
+            list_url("my-followers-list"), {"nickname": profile_3.nickname}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_3.data, response.data)
@@ -563,8 +593,7 @@ class AuthenticatedMyFollowingAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -591,7 +620,9 @@ class AuthenticatedMyFollowingAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.following.add(data["profile_1"])
 
-        response = self.client.get(detail_url("my-following-detail", data["profile_1"].id))
+        response = self.client.get(
+            detail_url("my-following-detail", data["profile_1"].id)
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(serializer_1.data, response.data)
@@ -609,7 +640,9 @@ class AuthenticatedMyFollowingAPITest(TestCase):
         profile = get_simple_profile(user=self.user)
         profile.following.add(profile_3)
 
-        response = self.client.get(list_url("my-following-list"), {"nickname": profile_3.nickname})
+        response = self.client.get(
+            list_url("my-following-list"), {"nickname": profile_3.nickname}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(serializer_3.data, response.data)
@@ -622,8 +655,7 @@ class AuthenticatedCommentAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -641,7 +673,7 @@ class AuthenticatedCommentAPITest(TestCase):
         data = {
             "post": sample_post(author=profile).id,
             "profile": profile.id,
-            "text": "hello world"
+            "text": "hello world",
         }
 
         response = self.client.post(list_url("comment-list"), data)
@@ -657,7 +689,9 @@ class AuthenticatedCommentAPITest(TestCase):
 
         update_comment = {"text": "test hello"}
 
-        response = self.client.patch(detail_url("comment-detail", comment.id), update_comment)
+        response = self.client.patch(
+            detail_url("comment-detail", comment.id), update_comment
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -678,8 +712,7 @@ class AuthenticatedFollowAndLikeAPITest(TestCase):
     def setUp(self) -> None:
         self.client = APIClient()
         self.user = get_user_model().objects.create_user(
-            email="test@gmail.com",
-            password="test12345"
+            email="test@gmail.com", password="test12345"
         )
         self.client.force_authenticate(self.user)
 
@@ -687,7 +720,9 @@ class AuthenticatedFollowAndLikeAPITest(TestCase):
         profile_1 = get_simple_profile(user=self.user)
         profile_2 = get_simple_profile(user=sample_user())
 
-        response = self.client.post(list_url("follow"), {"nickname": profile_2.nickname})
+        response = self.client.post(
+            list_url("follow"), {"nickname": profile_2.nickname}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(profile_1, profile_2.followers.all())
@@ -698,7 +733,9 @@ class AuthenticatedFollowAndLikeAPITest(TestCase):
 
         profile_1.following.add(profile_2)
 
-        response = self.client.post(list_url("unfollow"), {"nickname": profile_2.nickname})
+        response = self.client.post(
+            list_url("unfollow"), {"nickname": profile_2.nickname}
+        )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertNotIn(profile_1, profile_2.followers.all())

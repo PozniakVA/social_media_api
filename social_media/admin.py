@@ -1,9 +1,7 @@
 from django.contrib import admin
 
-from social_media.models import (
-    Post,
-    Hashtag
-)
+from social_media.models import Post, Hashtag
+
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):

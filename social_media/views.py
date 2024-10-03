@@ -1,6 +1,10 @@
 from django.db.models import Count
 from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
+from drf_spectacular.utils import (
+    extend_schema,
+    OpenApiParameter,
+    OpenApiResponse
+)
 from rest_framework import viewsets, generics, status, mixins
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -10,7 +14,8 @@ from rest_framework.viewsets import GenericViewSet
 from social_media.models import (
     Profile,
     Hashtag,
-    Post, Comment,
+    Post,
+    Comment,
 )
 from social_media.permissions import IsAdminOrAuthenticatedReadOnly
 from social_media.serializer import (
@@ -25,7 +30,7 @@ from social_media.serializer import (
     ProfileDetailSerializer,
     PostListSerializer,
     CommentSerializer,
-    MyProfileListSerializer
+    MyProfileListSerializer,
 )
 
 
@@ -71,7 +76,11 @@ class PostViewSet(
     mixins.ListModelMixin,
     GenericViewSet
 ):
-    queryset = Post.objects.annotate(like_count=Count("like")).select_related("author").prefetch_related("hashtag", "like")
+    queryset = (
+        Post.objects.annotate(like_count=Count("like"))
+        .select_related("author")
+        .prefetch_related("hashtag", "like")
+    )
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -112,7 +121,7 @@ class PostViewSet(
                 "author",
                 type=OpenApiTypes.STR,
                 description="Filter by author nickname (ex. ?author=test)",
-            )
+            ),
         ]
     )
     def list(self, request):
@@ -153,7 +162,11 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
         return MyProfileListSerializer
 
     def get_object(self):
-        return Profile.objects.select_related("user").prefetch_related("posts__like", "posts__hashtag").get(user=self.request.user)
+        return (
+            Profile.objects.select_related("user")
+            .prefetch_related("posts__like", "posts__hashtag")
+            .get(user=self.request.user)
+        )
 
 
 class MyPostViewSet(viewsets.ModelViewSet):
@@ -169,7 +182,12 @@ class MyPostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         author = self.request.user.profile
-        queryset = Post.objects.annotate(like_count=Count("like")).filter(author=author).select_related("author").prefetch_related("hashtag", "like")
+        queryset = (
+            Post.objects.annotate(like_count=Count("like"))
+            .filter(author=author)
+            .select_related("author")
+            .prefetch_related("hashtag", "like")
+        )
 
         title = self.request.query_params.get("title")
         hashtag = self.request.query_params.get("hashtag")
@@ -186,7 +204,6 @@ class MyPostViewSet(viewsets.ModelViewSet):
         author = self.request.user.profile
         serializer.save(author=author)
 
-
     @extend_schema(
         parameters=[
             OpenApiParameter(
@@ -198,7 +215,7 @@ class MyPostViewSet(viewsets.ModelViewSet):
                 "hashtag",
                 type=OpenApiTypes.STR,
                 description="Filter by hashtag name (ex. ?hashtag=sport)",
-            )
+            ),
         ]
     )
     def list(self, request):
@@ -206,9 +223,7 @@ class MyPostViewSet(viewsets.ModelViewSet):
 
 
 class LatestPostsViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
+    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
 ):
     def get_serializer_class(self):
         if self.action == "list":
@@ -219,7 +234,9 @@ class LatestPostsViewSet(
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = Post.objects.annotate(like_count=Count("like")).filter(author__in=user_profile.following.all())
+        queryset = Post.objects.annotate(like_count=Count("like")).filter(
+            author__in=user_profile.following.all()
+        )
 
         title = self.request.query_params.get("title")
         author = self.request.query_params.get("author")
@@ -250,7 +267,7 @@ class LatestPostsViewSet(
                 "author",
                 type=OpenApiTypes.STR,
                 description="Filter by author nickname (ex. ?author=test1)",
-            )
+            ),
         ]
     )
     def list(self, request):
@@ -258,9 +275,7 @@ class LatestPostsViewSet(
 
 
 class MyFollowersViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
 
     def get_serializer_class(self):
@@ -272,7 +287,9 @@ class MyFollowersViewSet(
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = user_profile.followers.select_related("user").order_by("nickname")
+        queryset = user_profile.followers.select_related("user").order_by(
+            "nickname"
+        )
 
         nickname = self.request.query_params.get("nickname")
         if nickname:
@@ -294,9 +311,7 @@ class MyFollowersViewSet(
 
 
 class MyFollowingViewSet(
-    mixins.RetrieveModelMixin,
-    mixins.ListModelMixin,
-    GenericViewSet
+    mixins.RetrieveModelMixin, mixins.ListModelMixin, GenericViewSet
 ):
     def get_serializer_class(self):
         if self.action == "list":
@@ -305,10 +320,11 @@ class MyFollowingViewSet(
             return ProfileDetailSerializer
         return ProfileSerializer
 
-
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = user_profile.following.select_related("user").order_by("nickname")
+        queryset = user_profile.following.select_related("user").order_by(
+            "nickname"
+        )
 
         nickname = self.request.query_params.get("nickname")
         if nickname:
@@ -331,7 +347,11 @@ class MyFollowingViewSet(
 
 @extend_schema(
     request=FollowAndUnfollowSerializer,
-    responses={200: OpenApiResponse(description="Successfully followed a user")}
+    responses={
+        200: OpenApiResponse(
+            description="Successfully followed a user"
+        )
+    },
 )
 class FollowView(APIView):
 
@@ -343,20 +363,33 @@ class FollowView(APIView):
             try:
                 profile = Profile.objects.get(nickname=nickname)
             except Profile.DoesNotExist:
-                return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"detail": "Profile not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             user_profile = request.user.profile
             if user_profile != profile:
                 user_profile.following.add(profile)
-                return Response({"detail": f"You have followed {profile.nickname}."}, status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": f"You have followed {profile.nickname}."},
+                    status=status.HTTP_200_OK,
+                )
 
-            return Response({"detail": "You cannot follow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "You cannot follow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @extend_schema(
     request=FollowAndUnfollowSerializer,
-    responses={200: OpenApiResponse(description="Successfully unfollowed a user")}
+    responses={
+        200: OpenApiResponse(
+            description="Successfully unfollowed a user"
+        )
+    },
 )
 class UnfollowView(APIView):
 
@@ -368,19 +401,32 @@ class UnfollowView(APIView):
             try:
                 profile = Profile.objects.get(nickname=nickname)
             except Profile.DoesNotExist:
-                return Response({"detail": "Profile not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"detail": "Profile not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             user_profile = request.user.profile
             if user_profile != profile:
                 user_profile.following.remove(profile)
-                return Response({"detail": f"You have unfollowed {profile.nickname}."}, status=status.HTTP_200_OK)
+                return Response(
+                    {"detail": f"You have unfollowed {profile.nickname}."},
+                    status=status.HTTP_200_OK,
+                )
 
-            return Response({"detail": "You cannot unfollow yourself."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"detail": "You cannot unfollow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
 
 @extend_schema(
     request=LikeSerializer,
-    responses={200: OpenApiResponse(description="Successfully like or un-like this post")}
+    responses={
+        200: OpenApiResponse(
+            description="Successfully like or un-like this post"
+        )
+    },
 )
 class LikeView(APIView):
 
@@ -392,7 +438,10 @@ class LikeView(APIView):
             try:
                 post = Post.objects.get(pk=request.data["post_id"])
             except Post.DoesNotExist:
-                return Response({"detail": "Post not found."}, status=status.HTTP_404_NOT_FOUND)
+                return Response(
+                    {"detail": "Post not found."},
+                    status=status.HTTP_404_NOT_FOUND
+                )
 
             user_profile = request.user.profile
             if user_profile in post.like.all():
@@ -402,7 +451,10 @@ class LikeView(APIView):
                 post.like.add(user_profile)
                 message = "like"
 
-            return Response({"detail": f"You have {message} this post."}, status=status.HTTP_200_OK)
+            return Response(
+                {"detail": f"You have {message} this post."},
+                status=status.HTTP_200_OK
+            )
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -411,7 +463,7 @@ class CommentViewSet(
     mixins.RetrieveModelMixin,
     mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
-    GenericViewSet
+    GenericViewSet,
 ):
     queryset = Comment.objects.all()
     serializer_class = CommentSerializer

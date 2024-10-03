@@ -1,10 +1,6 @@
 from rest_framework import serializers
 
-from social_media.models import (
-    Profile,
-    Post,
-    Hashtag, Comment
-)
+from social_media.models import Profile, Post, Hashtag, Comment
 from user.serializer import UserSerializer
 
 
@@ -36,6 +32,7 @@ class ProfileListSerializer(ProfileSerializer):
 
 class PostSerializer(serializers.ModelSerializer):
     like_count = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Post
         fields = [
@@ -83,6 +80,7 @@ class CommentSerializer(serializers.ModelSerializer):
         read_only=True,
         slug_field="nickname",
     )
+
     class Meta:
         model = Comment
         fields = [
@@ -100,9 +98,9 @@ class CommentListSerializer(CommentSerializer):
         fields = ["id", "profile", "text", "created_at"]
 
 
-
 class PostDetailSerializer(PostListSerializer):
     comments = CommentListSerializer(many=True)
+
     class Meta(PostListSerializer.Meta):
         fields = PostListSerializer.Meta.fields + ["comments"]
 
@@ -138,6 +136,7 @@ class MyProfileListSerializer(MyProfileSerializer):
 
     class Meta(ProfileSerializer.Meta):
         fields = ProfileSerializer.Meta.fields + ["posts"]
+
 
 class FollowAndUnfollowSerializer(serializers.Serializer):
     nickname = serializers.CharField(max_length=100)
