@@ -50,12 +50,12 @@ class Post(models.Model):
     text = models.TextField(blank=True, null=True)
     image = models.ImageField(blank=True, null=True, upload_to=image_path)
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
-    like = models.ManyToManyField(
+    likes = models.ManyToManyField(
         "Profile",
         related_name="likes",
         blank=True,
     )
-    hashtag = models.ManyToManyField(
+    hashtags = models.ManyToManyField(
         "Hashtag",
         related_name="posts",
         blank=True,
@@ -84,7 +84,11 @@ class Comment(models.Model):
         related_name="comments",
         on_delete=models.CASCADE
     )
-    profile = models.ForeignKey("Profile", on_delete=models.CASCADE)
+    profile = models.ForeignKey(
+        "Profile",
+        related_name="comments",
+        on_delete=models.CASCADE
+    )
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
 
