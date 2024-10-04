@@ -77,9 +77,9 @@ class PostViewSet(
     GenericViewSet
 ):
     queryset = (
-        Post.objects.annotate(like_count=Count("like"))
+        Post.objects.annotate(like_count=Count("likes"))
         .select_related("author")
-        .prefetch_related("hashtag", "like")
+        .prefetch_related("hashtags", "likes")
     )
 
     def get_serializer_class(self):
@@ -164,7 +164,7 @@ class MyProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return (
             Profile.objects.select_related("user")
-            .prefetch_related("posts__like", "posts__hashtag")
+            .prefetch_related("posts__likes", "posts__hashtags")
             .get(user=self.request.user)
         )
 
@@ -183,10 +183,10 @@ class MyPostViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         author = self.request.user.profile
         queryset = (
-            Post.objects.annotate(like_count=Count("like"))
+            Post.objects.annotate(like_count=Count("likes"))
             .filter(author=author)
             .select_related("author")
-            .prefetch_related("hashtag", "like")
+            .prefetch_related("hashtags", "likes")
         )
 
         title = self.request.query_params.get("title")
@@ -234,7 +234,7 @@ class LatestPostsViewSet(
 
     def get_queryset(self):
         user_profile = self.request.user.profile
-        queryset = Post.objects.annotate(like_count=Count("like")).filter(
+        queryset = Post.objects.annotate(like_count=Count("likes")).filter(
             author__in=user_profile.following.all()
         )
 

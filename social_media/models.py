@@ -52,7 +52,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     likes = models.ManyToManyField(
         "Profile",
-        related_name="likes",
+        related_name="post_likes",
         blank=True,
     )
     hashtags = models.ManyToManyField(
