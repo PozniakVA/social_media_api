@@ -93,11 +93,11 @@ class PostViewSet(
 
         title = self.request.query_params.get("title")
         author = self.request.query_params.get("author")
-        hashtag = self.request.query_params.get("hashtag")
+        hashtags = self.request.query_params.get("hashtags")
         queryset = self.queryset
 
-        if hashtag:
-            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+        if hashtags:
+            queryset = queryset.filter(hashtags__name__icontains=hashtags)
         if title:
             queryset = queryset.filter(title__icontains=title)
         if author:
@@ -110,7 +110,7 @@ class PostViewSet(
             OpenApiParameter(
                 "hashtag",
                 type=OpenApiTypes.STR,
-                description="Filter by hashtag name (ex. ?hashtag=sport)",
+                description="Filter by hashtags name (ex. ?hashtags=sport)",
             ),
             OpenApiParameter(
                 "title",
@@ -190,13 +190,13 @@ class MyPostViewSet(viewsets.ModelViewSet):
         )
 
         title = self.request.query_params.get("title")
-        hashtag = self.request.query_params.get("hashtag")
+        hashtags = self.request.query_params.get("hashtags")
 
         if title:
             queryset = queryset.filter(title__icontains=title)
 
-        if hashtag:
-            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+        if hashtags:
+            queryset = queryset.filter(hashtags__name__icontains=hashtags)
 
         return queryset.order_by("-created_at")
 
@@ -212,9 +212,9 @@ class MyPostViewSet(viewsets.ModelViewSet):
                 description="Filter by post name (ex. ?name=test)",
             ),
             OpenApiParameter(
-                "hashtag",
+                "hashtags",
                 type=OpenApiTypes.STR,
-                description="Filter by hashtag name (ex. ?hashtag=sport)",
+                description="Filter by hashtags name (ex. ?hashtags=sport)",
             ),
         ]
     )
@@ -223,7 +223,9 @@ class MyPostViewSet(viewsets.ModelViewSet):
 
 
 class LatestPostsViewSet(
-    mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    GenericViewSet
 ):
     def get_serializer_class(self):
         if self.action == "list":
@@ -240,10 +242,10 @@ class LatestPostsViewSet(
 
         title = self.request.query_params.get("title")
         author = self.request.query_params.get("author")
-        hashtag = self.request.query_params.get("hashtag")
+        hashtags = self.request.query_params.get("hashtags")
 
-        if hashtag:
-            queryset = queryset.filter(hashtag__name__icontains=hashtag)
+        if hashtags:
+            queryset = queryset.filter(hashtags__name__icontains=hashtags)
         if title:
             queryset = queryset.filter(title__icontains=title)
         if author:
@@ -254,9 +256,9 @@ class LatestPostsViewSet(
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                "hashtag",
+                "hashtags",
                 type=OpenApiTypes.STR,
-                description="Filter by hashtag name (ex. ?hashtag=sport)",
+                description="Filter by hashtags name (ex. ?hashtags=sport)",
             ),
             OpenApiParameter(
                 "name",
@@ -444,11 +446,11 @@ class LikeView(APIView):
                 )
 
             user_profile = request.user.profile
-            if user_profile in post.like.all():
-                post.like.remove(user_profile)
+            if user_profile in post.likes.all():
+                post.likes.remove(user_profile)
                 message = "removed the like"
             else:
-                post.like.add(user_profile)
+                post.likes.add(user_profile)
                 message = "like"
 
             return Response(

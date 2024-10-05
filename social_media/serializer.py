@@ -43,9 +43,9 @@ class PostSerializer(serializers.ModelSerializer):
             "created_at",
             "like_count",
             "author",
-            "hashtag",
+            "hashtags",
         ]
-        read_only_fields = ["created_at", "like", "like_count", "author", "id"]
+        read_only_fields = ["created_at", "likes", "like_count", "author", "id"]
 
 
 class HashtagSerializer(serializers.ModelSerializer):
@@ -58,20 +58,20 @@ class HashtagSerializer(serializers.ModelSerializer):
 
 
 class PostListSerializer(PostSerializer):
-    hashtag = HashtagSerializer(many=True, required=False)
+    hashtags = HashtagSerializer(many=True, required=False)
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field="nickname",
     )
 
     def create(self, validated_data):
-        hashtags_data = validated_data.pop("hashtag", None)
+        hashtags_data = validated_data.pop("hashtags", None)
         post = Post.objects.create(**validated_data)
 
         if hashtags_data:
             for hashtag_data in hashtags_data:
                 hashtag = Hashtag.objects.create(name=hashtag_data["name"])
-                post.hashtag.add(hashtag)
+                post.hashtags.add(hashtag)
         return post
 
 

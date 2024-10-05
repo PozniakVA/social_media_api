@@ -111,7 +111,7 @@ class AuthenticatedPostAPITest(TestCase):
         serializer_data_2 = add_like_count_field(serializer_2.data)
 
         response = self.client.get(
-            list_url("post-list"), {"hashtag": data["hashtag_2"]}
+            list_url("post-list"), {"hashtags": data["hashtag_2"]}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -362,7 +362,7 @@ class AuthenticatedMyPostAPITest(TestCase):
 
         response = self.client.get(
             list_url("my-posts-list"),
-            {"hashtag": hashtag_2}
+            {"hashtags": hashtag_2}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -465,7 +465,7 @@ class AuthenticatedLatestPostsAPITest(TestCase):
         profile.following.add(data["profile_2"])
 
         response = self.client.get(
-            list_url("latest-posts-list"), {"hashtag": data["hashtag_2"]}
+            list_url("latest-posts-list"), {"hashtags": data["hashtag_2"]}
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -747,14 +747,14 @@ class AuthenticatedFollowAndLikeAPITest(TestCase):
         response = self.client.post(list_url("like"), {"post_id": post.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(post.like.count(), 1)
+        self.assertEqual(post.likes.count(), 1)
 
     def test_unlike(self) -> None:
         profile = get_simple_profile(user=self.user)
         post = sample_post(author=profile)
-        post.like.add(profile)
+        post.likes.add(profile)
 
         response = self.client.post(list_url("like"), {"post_id": post.id})
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(post.like.count(), 0)
+        self.assertEqual(post.likes.count(), 0)

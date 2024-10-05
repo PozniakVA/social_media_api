@@ -41,7 +41,7 @@ def sample_post(**params):
 
     if hashtags:
         for hashtag in hashtags:
-            post.hashtag.add(hashtag)
+            post.hashtags.add(hashtag)
 
     return post
 
