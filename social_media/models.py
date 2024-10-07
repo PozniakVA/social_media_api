@@ -52,7 +52,7 @@ class Post(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, editable=False)
     likes = models.ManyToManyField(
         "Profile",
-        related_name="post_likes",
+        related_name="posts",
         blank=True,
     )
     hashtags = models.ManyToManyField(
@@ -62,7 +62,7 @@ class Post(models.Model):
     )
     author = models.ForeignKey(
         "Profile",
-        related_name="posts",
+        related_name="author_posts",
         on_delete=models.CASCADE,
         null=True,
     )

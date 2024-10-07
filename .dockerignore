@@ -13,9 +13,5 @@ env/
 Dockerfile*
 docker-compose.yml
 
-# OS-generated files
-.DS_Store
-Thumbs.db
-
 # Media uploads (if any)
 media/
